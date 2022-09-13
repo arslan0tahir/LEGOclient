@@ -2,7 +2,7 @@ import React,{Component} from "react";
 
 class Login extends Component {
     state = {  } 
-    render() { 
+    render() {   
         return (
         <React.Fragment>
             <div style={{width: '100%', maxWidth: '330px', padding: '15px'}}>

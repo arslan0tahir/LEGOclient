@@ -4,7 +4,8 @@ import { Route, Routes } from 'react-router-dom';
 import NavBar from './components/NavBar/NavBar';
 import LoginPage from './pages/LoginPage';
 import React, { Component } from 'react';
-import loginCtrl from './appCtrl'
+
+
 
 
 let Home=(<div>
@@ -20,12 +21,7 @@ class App extends Component {
 
     super();
 
-    // this.appCtrl=()=>{console.log(this)};
-    // this.appCtrl={...appCtrl()};
     
-    // this.appCtrl();
-    console.log(loginCtrl)
-    this.loginCtrl={...loginCtrl}
 
     this.state = {
       login:{//name after compenent or page

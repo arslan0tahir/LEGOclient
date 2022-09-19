@@ -1,15 +1,17 @@
 import React,{Component} from "react";
 import produce from "immer"
 import {connect} from 'react-redux'
-const axios = require('axios').default;
+import {config} from '../../config/config'
+
 
 // import { bindActionCreators } from "redux";
 
 import * as authActions from "../../store/authActions"
 
+const axios = require('axios').default;
 class Login extends Component {
     state={
-        userName: "comp",
+        userName: "",
         password: "",
     };
     
@@ -32,9 +34,10 @@ class Login extends Component {
     }
 
     onClickLogin=(e)=>{
+        e.preventDefault();
         // Axios will automatically serialize the object into JSON format
         //  it will also set our Content-Type header to application/json:
-        const authUrl="/user"
+        const authUrl=config.rootUri+"/_api/auth/signin"
         const headers = { 
             'Authorization': 'Bearer my-token',
             'My-Custom-Header': 'foobar'
@@ -46,9 +49,9 @@ class Login extends Component {
 
         axios.post(authUrl, req, { headers })
           .then(function (response) {
-            this.props.setAuth(response);
-
             console.log(response);
+            this.props.setAuth(response);
+        
           })
           .catch(function (error) {
             console.log(error);
@@ -56,7 +59,7 @@ class Login extends Component {
     }
 
     componentDidMount(){
-        this.onClickLogin();
+        // this.onClickLogin();
     }
     
     render() {   
@@ -86,7 +89,11 @@ class Login extends Component {
                         />
                         <label htmlFor="login-password">Password</label>
                     </div>
-                    <button className="w-100 btn btn-lg btn-primary mt-2" type="submit">Sign in</button>                    
+                    <button 
+                        className="w-100 btn btn-lg btn-primary mt-2" 
+                        onClick={(e)=>(this.onClickLogin(e))}>
+                            Sign in
+                    </button>                    
                 </form>
             </div>
             

@@ -10,7 +10,11 @@ import {Provider} from 'react-redux';
 
 import authReducer from './store/authReducer'
 
-const store=configureStore({reducer:authReducer});
+const store=configureStore({
+  reducer:{
+    auth:authReducer,
+  }
+});
 // reducer: {
 //   a: reducerA,
 //   b: reducerB

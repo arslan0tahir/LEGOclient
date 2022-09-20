@@ -2,6 +2,8 @@ import * as authAction from "./authActions";
 import produce from "immer"
 
 const initialState={
+    loggedIn:0,
+    fullName: "",
     username: "",
     IsAdmin: 0,
     jwtTocken:"",
@@ -9,20 +11,43 @@ const initialState={
 
 }
 
-const reducer=(state=initialState,action)=>{
-    if (action.type==authAction.SET_AUTH){
+// const reducer=
+//     produce((draft,action)=>{
+//         const { type, payload } = action;
+//         if (type==authAction.SET_AUTH){       
+//             draft.username= "Arslan Tahir1";
+//             draft.IsAdmin= 0;
+//             draft.jwtTocken="";
+//             draft.groups=[];
 
-        const nextState = produce(state, draft => {
-            draft.username= "Arslan Tahir";
-            draft.IsAdmin= 0;
-            draft.jwtTocken="";
-            draft.groups=[];
+
+//             return draft;
+            
+//         }    
+//         return state;
+
+//     })
+
+const reducer=(state=initialState,action)=>{
+    const { type, payload } = action;
+    if (type==authAction.SET_AUTH){        
+        let nextState = produce(state, draft => {
+                draft.loggedIn=payload.loggedIn;
+                draft.fullName= payload.fullName;
+                draft.username=payload.username;
+                draft.IsAdmin= 0;
+                draft.jwtTocken="";
+                draft.groups=[];
         })
+        console.log(nextState)
         return nextState;
         
     }    
     return state;
 
 }
+
+
+
 
 export default reducer;

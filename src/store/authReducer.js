@@ -3,8 +3,8 @@ import produce from "immer"
 
 const initialState={
     loggedIn:0,
-    fullName: "",
-    username: "",
+    fullName: "guest",
+    username: "guest",
     IsAdmin: 0,
     jwtTocken:"",
     groups:[],

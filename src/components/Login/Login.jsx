@@ -2,7 +2,7 @@ import React,{Component} from "react";
 import produce from "immer"
 import {connect} from 'react-redux'
 import {config} from '../../config/config'
-
+import Cookies from 'js-cookie'
 
 // import { bindActionCreators } from "redux";
 
@@ -34,13 +34,43 @@ class Login extends Component {
         this.setState(nextState)
     }
 
+    onClickLogout=(e)=>{
+
+        e.preventDefault();
+        const authSignOutUrl=config.rootUri+"/_api/auth/signout"
+        const jwtToken=Cookies.get('jwtToken');
+        
+        const headers = { 
+            'Authorization': 'Bearer '+jwtToken
+        };
+        
+        const req = { 
+            userName: this.props.auth_username,            
+         };
+
+        axios.post(authSignOutUrl, req, {  })
+          .then((response)=> {
+            console.log("Signout Response",response);
+             this.props.setAuth(response.data);
+
+             this.setState({
+                userName: "",
+                password:""
+            });
+        
+          })
+          .catch((error)=> {
+            console.log(error);
+          });
+    }
+
     onClickLogin=(e)=>{
         e.preventDefault();
         // Axios will automatically serialize the object into JSON format
         //  it will also set our Content-Type header to application/json:
         const authUrl=config.rootUri+"/_api/auth/signin"
         const headers = { 
-            'Authorization': 'Bearer my-token',
+            'Authorization': 'Bearer',
             'My-Custom-Header': 'foobar'
         };
         const req = { 
@@ -53,6 +83,10 @@ class Login extends Component {
             console.log("Authentication Response",response);
             this.state.authSuccess=1;
             this.props.setAuth(response.data);
+            this.setState({
+                userName: "",
+                password:""
+            });
         
           })
           .catch((error)=> {
@@ -126,6 +160,7 @@ class Login extends Component {
                     </span>
                     <button 
                         className="btn btn-lg btn-primary mt-2" 
+                        onClick={e=>this.onClickLogout(e)}
                         // onClick={(e)=>(this.onClickLogin(e))}
                         >
                             Log Out

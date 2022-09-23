@@ -1,8 +1,8 @@
 import React,{Component} from "react";
-import produce from "immer"
-import {connect} from 'react-redux'
-import {config} from '../../config/config'
-import Cookies from 'js-cookie'
+import produce from "immer";
+import {connect} from 'react-redux';
+import {config} from '../../config/config';
+import Cookies from 'js-cookie';
 import _ from 'underscore';
 
 // import { bindActionCreators } from "redux";
@@ -47,6 +47,7 @@ class Login extends Component {
             'Authorization': 'Bearer '+jwtToken
         };
         
+        //### sending existing auth state  for logout, auth in cookies and state shall always be synced
         const req = {auth:this.props.auth}
 
         axios.post(authSignOutUrl, req, {headers})
@@ -58,6 +59,7 @@ class Login extends Component {
 
             //### delete cookie after logout
             Cookies.set('jwtToken','')
+            Cookies.set('auth',response.data.auth)
 
             //### reset local state
             this.setState({
@@ -81,8 +83,11 @@ class Login extends Component {
             'My-Custom-Header': 'foobar'
         };
         const req = { 
-            username: this.state.username,
-            password: this.state.password
+            auth:{
+                username: this.state.username,
+                password: this.state.password  
+            }
+            
          };
 
         axios.post(authUrl, req, { headers })
@@ -92,12 +97,16 @@ class Login extends Component {
             if (!_.isUndefined(response.data.auth.jwtToken)){
                 //### set jwtToken  in cookie to be accessed at React client
                 Cookies.set('jwtToken',response.data.auth.jwtToken)
+                
 
                 //### set this local state to transform signin component to signout functionality
-                this.state.authSuccess=1;
+                // this.state.authSuccess=1;
                 
                 //### after placing token in cookie remove it from state 
                 response.data.auth.jwtToken='';
+
+                //### set auth object in cookies, it will helpt to reinstate the login with existing tocken
+                Cookies.set('auth',JSON.stringify(response.data.auth))
 
                 //### update the global state in store
                 this.props.setAuth(response.data.auth);  
@@ -105,7 +114,8 @@ class Login extends Component {
                 //### reset username and password to null 
                 this.setState({
                     username: "",
-                    password:""
+                    password: "",
+                    authSuccess: 1
                 });
             }
             else{
@@ -200,10 +210,7 @@ class Login extends Component {
                 </React.Fragment>
             )
             
-        }
-
-
-        
+        }       
     }
 }
  

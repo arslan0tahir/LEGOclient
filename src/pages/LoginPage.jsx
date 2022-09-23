@@ -20,10 +20,7 @@ class LoginPage extends Component {
             <React.Fragment>
                 <div style={{display: 'flex',flexDirection: 'column',justifyContent: 'center',alignItems: 'center',height:'500px'}}>
                     {/* <span>LEGO</span> */}
-                    <Login
-                        login={this.props.login}
-                        loginCtrl={this.props.loginCtrl}
-                    />             
+                    <Login/>             
                 </div>
             </React.Fragment>
         );

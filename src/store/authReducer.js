@@ -23,7 +23,7 @@ const reducer=(state=initialState,action)=>{
                 draft.jwtTocken="";
                 draft.groups=[];
         })
-        console.log(nextState)
+        // console.log(nextState)
         return nextState;
         
     }    

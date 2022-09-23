@@ -11,22 +11,6 @@ const initialState={
 
 }
 
-// const reducer=
-//     produce((draft,action)=>{
-//         const { type, payload } = action;
-//         if (type==authAction.SET_AUTH){       
-//             draft.username= "Arslan Tahir1";
-//             draft.IsAdmin= 0;
-//             draft.jwtTocken="";
-//             draft.groups=[];
-
-
-//             return draft;
-            
-//         }    
-//         return state;
-
-//     })
 
 const reducer=(state=initialState,action)=>{
     const { type, payload } = action;

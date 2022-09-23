@@ -3,6 +3,7 @@ import produce from "immer"
 import {connect} from 'react-redux'
 import {config} from '../../config/config'
 import Cookies from 'js-cookie'
+import _ from 'underscore';
 
 // import { bindActionCreators } from "redux";
 
@@ -11,7 +12,7 @@ import * as authActions from "../../store/authActions"
 const axios = require('axios').default;
 class Login extends Component {
     state={
-        userName: "",
+        username: "",
         password: "",
         authSuccess: -1,
     };
@@ -20,7 +21,7 @@ class Login extends Component {
 
         
         const nextState = produce(this.state, draft => {
-            draft.userName = e.target.value;
+            draft.username = e.target.value;
         })
         this.setState(nextState)
     }
@@ -38,23 +39,29 @@ class Login extends Component {
 
         e.preventDefault();
         const authSignOutUrl=config.rootUri+"/_api/auth/signout"
+
+        //# get the value of cookie sotred during login
         const jwtToken=Cookies.get('jwtToken');
         
         const headers = { 
             'Authorization': 'Bearer '+jwtToken
         };
         
-        const req = { 
-            userName: this.props.auth_username,            
-         };
+        const req = {auth:this.props.auth}
 
-        axios.post(authSignOutUrl, req, {  })
+        axios.post(authSignOutUrl, req, {headers})
           .then((response)=> {
-            console.log("Signout Response",response);
-             this.props.setAuth(response.data);
+            console.log("Signout Response",response.data);
+            
+            //### update state after logout from server 
+            this.props.setAuth(response.data.auth);
 
-             this.setState({
-                userName: "",
+            //### delete cookie after logout
+            Cookies.set('jwtToken','')
+
+            //### reset local state
+            this.setState({
+                username: "",
                 password:""
             });
         
@@ -74,19 +81,44 @@ class Login extends Component {
             'My-Custom-Header': 'foobar'
         };
         const req = { 
-            userName: this.state.userName,
+            username: this.state.username,
             password: this.state.password
          };
 
         axios.post(authUrl, req, { headers })
           .then((response)=> {
             console.log("Authentication Response",response);
-            this.state.authSuccess=1;
-            this.props.setAuth(response.data);
-            this.setState({
-                userName: "",
-                password:""
-            });
+
+            if (!_.isUndefined(response.data.auth.jwtToken)){
+                //### set jwtToken  in cookie to be accessed at React client
+                Cookies.set('jwtToken',response.data.auth.jwtToken)
+
+                //### set this local state to transform signin component to signout functionality
+                this.state.authSuccess=1;
+                
+                //### after placing token in cookie remove it from state 
+                response.data.auth.jwtToken='';
+
+                //### update the global state in store
+                this.props.setAuth(response.data.auth);  
+                
+                //### reset username and password to null 
+                this.setState({
+                    username: "",
+                    password:""
+                });
+            }
+            else{
+                this.setState({
+                    authSuccess : 0,
+                    password    : "",
+                });
+                setTimeout(() => {
+                    this.setState({authSuccess: -1});
+                }, 5000)
+            }
+
+            
         
           })
           .catch((error)=> {
@@ -119,7 +151,7 @@ class Login extends Component {
                                     className="form-control" 
                                     id="login-username" 
                                     placeholder="User Name" 
-                                    value={this.state.userName}
+                                    value={this.state.username}
                                     onChange={(e) => (this.onChangeUserName(e))} 
                                 />
                                 <label htmlFor="login-username">User Name</label>
@@ -180,6 +212,7 @@ const mapStateToProps=state=>{
         auth_loggedIn:   state.auth.loggedIn,
         auth_fullName:   state.auth.fullName,
         auth_username:   state.auth.username,
+        auth:            state.auth
 
         // propName: state (defined in reduce)
     }

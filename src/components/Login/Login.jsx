@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {config} from '../../config/config';
 import Cookies from 'js-cookie';
 import _ from 'underscore';
+import styles from './login.module.css';
 
 // import { bindActionCreators } from "redux";
 
@@ -15,6 +16,7 @@ class Login extends Component {
         username: "",
         password: "",
         authSuccess: -1,
+        loginMsg : []
     };
     
     onChangeUserName=(e)=>{
@@ -115,7 +117,7 @@ class Login extends Component {
                 this.setState({
                     username: "",
                     password: "",
-                    authSuccess: 1
+                    authSuccess: 1,                    
                 });
             }
             else{
@@ -136,12 +138,14 @@ class Login extends Component {
             this.setState({
                 authSuccess : 0,
                 password    : "",
+                loginMsg    : error.response.data
+                // loginMsg    : error.da   
             });
             setTimeout(() => {
                 this.setState({authSuccess: -1});
             }, 5000)
 
-            console.log(error);
+            console.log("Login Error",error);
           });
     }
 
@@ -182,11 +186,14 @@ class Login extends Component {
                                 onClick={(e)=>(this.onClickLogin(e))}>
                                     Sign in
                             </button>
-                            {this.state.authSuccess==0 && (
-                                <div className="alert alert-danger mt-2" role="alert">
-                                    Login Failed
-                                </div>
-                            )}
+                            <div className={"alert alert-danger mt-2 "+ (this.state.authSuccess? styles.loginMsgHide :styles.loginloginMsgVisible )} role="alert">
+                                {
+                                    this.state.loginMsg.map((item)=>{
+                                        return ( <div style={{textAlign:'left'}}>-{item}</div> )
+                                    })
+                                }
+                            </div>
+                            
                                                 
                         </form>
                     </div>                   

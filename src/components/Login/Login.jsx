@@ -5,12 +5,15 @@ import {config} from '../../config/config';
 import Cookies from 'js-cookie';
 import _ from 'underscore';
 import styles from './login.module.css';
-
+import { Navigate } from 'react-router-dom';
 // import { bindActionCreators } from "redux";
 
 import * as authActions from "../../store/authActions"
 
+
+
 const axios = require('axios').default;
+
 class Login extends Component {
     state={
         username: "",
@@ -18,6 +21,7 @@ class Login extends Component {
         authSuccess: -1,
         loginMsg : []
     };
+    toHomePage=0;
     
     onChangeUserName=(e)=>{
 
@@ -61,13 +65,14 @@ class Login extends Component {
 
             //### delete cookie after logout
             Cookies.set('jwtToken','')
-            Cookies.set('auth',response.data.auth)
+            Cookies.set('auth',JSON.stringify(response.data.auth))
 
             //### reset local state
             this.setState({
                 username: "",
                 password:""
             });
+
         
           })
           .catch((error)=> {
@@ -79,6 +84,7 @@ class Login extends Component {
         e.preventDefault();
         // Axios will automatically serialize the object into JSON format
         //  it will also set our Content-Type header to application/json:
+
         const authUrl=config.rootUri+"/_api/auth/signin"
         const headers = { 
             'Authorization': 'Bearer',
@@ -110,7 +116,8 @@ class Login extends Component {
                 //### set auth object in cookies, it will helpt to reinstate the login with existing tocken
                 Cookies.set('auth',JSON.stringify(response.data.auth))
 
-                //### update the global state in store
+                //### update the global state in store and route to home page
+                this.toHomePage=1;
                 this.props.setAuth(response.data.auth);  
                 
                 //### reset username and password to null 
@@ -119,6 +126,7 @@ class Login extends Component {
                     password: "",
                     authSuccess: 1,                    
                 });
+
             }
             else{
                 this.setState({
@@ -134,15 +142,25 @@ class Login extends Component {
         
           })
           .catch((error)=> {
-
-            this.setState({
+            
+            this.setState({ 
+                ...this.state, 
                 authSuccess : 0,
                 password    : "",
-                loginMsg    : error.response.data
-                // loginMsg    : error.da   
-            });
+                loginMsg    : error.response.data || ['Server Not Responding']
+            })
+                
+            //     {
+            //     authSuccess : 0,
+            //     password    : "",
+            //     loginMsg    : error.response.data
+            //     // loginMsg    : error.da   
+            // });
             setTimeout(() => {
-                this.setState({authSuccess: -1});
+                this.setState({ 
+                    ...this.state,
+                    authSuccess: -1,
+                })                
             }, 5000)
 
             console.log("Login Error",error);
@@ -153,7 +171,12 @@ class Login extends Component {
         // this.onClickLogin();
     }
     
-    render() {   
+    render() { 
+        if (this.toHomePage==1) {
+            this.toHomePage=0;
+            return <Navigate to='/' />
+        }
+        
         if (!this.props.auth_loggedIn){
             return (
                 <React.Fragment>                

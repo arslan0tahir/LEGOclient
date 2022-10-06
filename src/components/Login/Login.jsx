@@ -19,7 +19,7 @@ class Login extends Component {
         username: "",
         password: "",
         authSuccess: -1,
-        loginMsg : []
+        loginMsg : ''
     };
     toHomePage=0;
     
@@ -147,7 +147,7 @@ class Login extends Component {
                 ...this.state, 
                 authSuccess : 0,
                 password    : "",
-                loginMsg    : error.response.data || ['Server Not Responding']
+                loginMsg    : error.response.data || 'Server Not Responding'
             })
                 
             //     {
@@ -210,11 +210,12 @@ class Login extends Component {
                                     Sign in
                             </button>
                             <div className={"alert alert-danger mt-2 "+ (this.state.authSuccess? styles.loginMsgHide :styles.loginloginMsgVisible )} role="alert">
-                                {
-                                    this.state.loginMsg.map((item)=>{
-                                        return ( <div style={{textAlign:'left'}}>-{item}</div> )
-                                    })
-                                }
+                                
+                                    {this.state.loginMsg}
+                                    {/* // .map((item)=>{
+                                    //     return ( <div style={{textAlign:'left'}}>-{item}</div> )
+                                    // }) */}
+                                
                             </div>
                             
                                                 

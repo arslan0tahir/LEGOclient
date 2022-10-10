@@ -1,8 +1,10 @@
+import NavBar from './components/NavBar/NavBar';
+import LoginPage from './pages/LoginPage';
+import Dummy from './components/Dummy/Dummy'
+
 import logo from './logo.svg';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
-import NavBar from './components/NavBar/NavBar';
-import LoginPage from './pages/LoginPage';
 import React, { Component } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -98,6 +100,13 @@ class App extends Component {
                   path="/login" 
                   element={
                     <LoginPage/>
+                  }
+                />
+
+                <Route 
+                  path="/dummy" 
+                  element={
+                    <Dummy/>
                   }
                 />
                 

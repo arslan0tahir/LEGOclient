@@ -20,6 +20,9 @@ class NavBar extends Component {
                             <li className="nav-item active">
                                 <Link className="nav-link" aria-current="page" to="/">Home </Link>
                             </li>
+                            <li className="nav-item active">
+                                <Link className="nav-link" aria-current="dummy" to="/dummy">Dummy </Link>
+                            </li>
                             
                             {/* <li className= {"nav-item "+styles.loginClass}>                                
                                 <Link className="nav-link" to="/login">Login </Link>

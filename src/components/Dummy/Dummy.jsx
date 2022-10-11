@@ -101,7 +101,8 @@ class Dummy extends Component{
         tableIds:[3],
         columns:[],
         listData:[],
-        selectedRows:[],       
+        selectedRows:[],
+        sortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
 
 
         selectionAllowed:1, 
@@ -118,6 +119,7 @@ class Dummy extends Component{
     render() { 
         return ( 
         <div>
+
             <table className={"table table-hover table-sm " +styles.tableContainer} >
                 <thead>
                     <tr>
@@ -140,20 +142,23 @@ class Dummy extends Component{
 
     
 
-    renderColumns(){
+    renderColumns=()=>{
         let tableColumns=[];
 
         if (this.state.selectionAllowed){
             tableColumns.push( 
-                <th onClick={this.allRowSelectionHandler}>
+                <th onClick={this.allRowSelectionClickHandler}>
                     <i className="bi bi-check2-square"></i>
                 </th>
             );
         }
 
         tableColumns.push(
-            this.state.columns.map(function(item) {
-                return <th key={item.id} scope="col">{item.colName}</th>
+            this.state.columns.map((col)=> {
+                return <th key={col.id} scope="col" onClick={(e)=>{this.sortColumnClickHandler(e,col)}}>
+                        {col.colName}
+                        {this.renderSortIcon(col)}
+                    </th>
             })  
         )    
 
@@ -166,7 +171,7 @@ class Dummy extends Component{
 
         if (this.state.selectionAllowed){
             tableRowCells.push(
-                <td onClick={(e)=>this.rowSelectionHandler(e,row)}>
+                <td onClick={(e)=>this.rowSelectionClickHandler(e,row)}>
                     <i className="bi bi-check2-square"></i>
                 </td>
             )
@@ -188,7 +193,45 @@ class Dummy extends Component{
         return <tr key={row.id}  className={this.selectedRowsClass(row)}>{tableRowCells}</tr>   
     }
 
-    rowSelectionHandler=(e,row)=>{
+    sortColumnClickHandler=(e,col)=>{
+        e.preventDefault();
+        let sortToggle=[-1,1,0];
+        let sortByObj={};
+        let sortBy=[...this.state.sortBy];
+        let selectedRows=[];
+
+        let sortByIndex=sortBy.findIndex((sortByObj)=>{
+            if (sortByObj.id==col.id){
+                return 1
+            }
+        })
+        if (sortByIndex>=0){
+            //rotate sort order of selected column
+            let currSortBy=sortBy[sortByIndex];            
+            let sortToggleIndex=sortToggle.indexOf(currSortBy.order);
+            sortToggleIndex=(sortToggleIndex+1) > 2 ? 0: sortToggleIndex+1;
+            currSortBy.order=sortToggle[sortToggleIndex]
+            
+            if (currSortBy.order==0){
+                sortBy=sortBy.filter(item=>item.order!=0)
+            }
+        }
+        else{
+            sortBy.push({
+                id: col.id,
+                order:-1
+            })
+
+        }
+
+        this.setState({
+            sortBy:sortBy
+        })
+
+
+    }
+
+    rowSelectionClickHandler=(e,row)=>{
         e.preventDefault();
         let selectedRows=[...this.state.selectedRows];
 
@@ -211,7 +254,7 @@ class Dummy extends Component{
         console.log(e);
     }
 
-    allRowSelectionHandler=(e)=>{
+    allRowSelectionClickHandler=(e)=>{
         e.preventDefault();
         let selectedRows=[];
 
@@ -234,6 +277,28 @@ class Dummy extends Component{
         if (this.state.selectedRows.includes(row.id)){
             return styles.selectedRow;
         }
+    }
+
+    renderSortIcon=(col)=>{
+        const sortBy=this.state.sortBy;
+
+        let currColSortBy=sortBy.find((sbItem)=>{
+            return sbItem.id==col.id
+        })
+
+        if (currColSortBy){
+            if (currColSortBy.order==1){
+                return <i class="bi bi-sort-up"></i>
+            }
+            else if (currColSortBy.order==-1){
+                return <i class="bi bi-sort-down"></i>
+            }
+            else{
+                return ""
+            }
+        }
+
+        
     }
 
 

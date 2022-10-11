@@ -6,13 +6,14 @@ import { connect } from "react-redux";
 import styles from './dummy.module.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
+var AppId=4;
+// var TableIds=[3];
 
 var Columns=[
-    {id:1,  colName: "id"},
-    {id:2,  colName: "FirstName"},
-    {id:3,  colName: "LastName"},
-    {id:4,  colName: "Age"},
-
+    {id:1, tableId:1, colName: "id"},
+    {id:2, tableId:1, colName: "FirstName"},
+    {id:3, tableId:1, colName: "LastName"},
+    {id:4, tableId:1, colName: "Age"}
 ]
 
 var ListData=[
@@ -96,9 +97,12 @@ class Dummy extends Component{
     }
 
     state = { 
-        listData:[],
-        selectedRow:[],       
+        appId:4,
+        tableIds:[3],
         columns:[],
+        listData:[],
+        selectedRows:[],       
+
 
         selectionAllowed:1, 
      }
@@ -117,50 +121,14 @@ class Dummy extends Component{
             <table className={"table table-hover table-sm " +styles.tableContainer} >
                 <thead>
                     <tr>
-                        {this.state.selectionAllowed && (
-                            <th >
-                                <i className="bi bi-check2-square"></i>
-                            </th>
-                        )}
-
-                        {       
-                            this.state.columns.map(function(item) {
-                                    return <th key={item.id} scope="col">{item.colName}</th>
-                            })                            
-                        }
-{/* 
-                        <th scope="col">#</th>
-                        <th scope="col">First</th>
-                        <th scope="col">Last</th>
-                        <th scope="col">Handle</th> */}
+                        {this.renderColumns()}
                     </tr>
                 </thead>
                 <tbody>
                     
-                    {
-                       this.state.listData.map(this.renderRow)
-                    }
+                    {this.state.listData.map(this.renderRow) }
 
-                    {/* <tr>
-                        <th scope="row">
-                            <i className="bi-alarm"></i>
-                        </th>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                        <td>@fat</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">3</th>
-                        <td>Arslan</td>
-                        <td>Tahir</td>
-                        <td>@fat</td>
-                    </tr> */}
+                    
                 </tbody>
             </table>
         </div> 
@@ -168,44 +136,107 @@ class Dummy extends Component{
         );
     }
 
-    renderRow=(row)=>{              
-     return <tr key={row.id}>
-        {
-            this.state.columns.map((col)=>{ 
-                return this.renderRowCell(row,col);
-            })
+
+
+    
+
+    renderColumns(){
+        let tableColumns=[];
+
+        if (this.state.selectionAllowed){
+            tableColumns.push( 
+                <th onClick={this.allRowSelectionHandler}>
+                    <i className="bi bi-check2-square"></i>
+                </th>
+            );
         }
-     </tr>
+
+        tableColumns.push(
+            this.state.columns.map(function(item) {
+                return <th key={item.id} scope="col">{item.colName}</th>
+            })  
+        )    
+
+        return tableColumns;                                    
+        
     }
 
-    renderRowCell=(row,col)=>{    
-        if (row[col.colName]){
-            return <td key={row.id+'-'+col.id} scope="row">{row[col.colName]}</td>
+    renderRow=(row)=>{
+        let tableRowCells=[];        
+
+        if (this.state.selectionAllowed){
+            tableRowCells.push(
+                <td onClick={(e)=>this.rowSelectionHandler(e,row)}>
+                    <i className="bi bi-check2-square"></i>
+                </td>
+            )
+        }
+
+        for (const col of this.state.columns){
+            if (row[col.colName]){
+                tableRowCells.push(
+                    <td key={row.id+'-'+col.id} scope="row">
+                        {row[col.colName]}
+                    </td>
+                )
+            }
+            else{
+                tableRowCells.push(<td key={row.id+'-'+col.id} scope="row"> </td>) 
+            }           
+        }         
+
+        return <tr key={row.id}  className={this.selectedRowsClass(row)}>{tableRowCells}</tr>   
+    }
+
+    rowSelectionHandler=(e,row)=>{
+        e.preventDefault();
+        let selectedRows=[...this.state.selectedRows];
+
+        if (this.state.selectedRows.includes(row.id)){
+            //removing selected row
+            selectedRows=selectedRows.filter(item=>{
+                return (item != row.id) 
+            });
         }
         else{
-            return <td key={row.id+'-'+col.id} scope="row"></td> 
-        }                      
+            //adding selected row
+            selectedRows.push(row.id)
+        }
+
+        this.setState({
+            selectedRows:selectedRows
+        })
+
+
+        console.log(e);
     }
 
-    // renderRow=(row)=>{              
-    //     return <tr>
-    //        {
-    //            this.state.columns.map((col)=>{ 
-    //                const getCell=(row,col)=>{
-       
-    //                    if (row[col.colName]){
-    //                        return <td scope="row">{row[col.colName]}</td>
-    //                    }
-    //                    else{
-    //                        return <td scope="row"></td> 
-    //                    }                      
-                       
-    //                }
-    //                return getCell(row,col);
-    //            })
-    //        }
-    //     </tr>
-    //    }
+    allRowSelectionHandler=(e)=>{
+        e.preventDefault();
+        let selectedRows=[];
+
+        //if all rows already selected deselect rows
+        if (this.state.selectedRows.length==this.listData.length){
+            selectedRows=[]
+        }
+        else{
+            selectedRows=this.state.listData.map((row)=>{
+                return row.id
+            })
+        }
+
+        this.setState({
+            selectedRows:selectedRows
+        }) 
+    }
+
+    selectedRowsClass=(row)=>{
+        if (this.state.selectedRows.includes(row.id)){
+            return styles.selectedRow;
+        }
+    }
+
+
 
     
 }

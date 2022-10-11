@@ -1,3 +1,7 @@
 .tableContainer{
     margin: 0px, 10%,0%,10%;
 }
+
+.selectedRow{
+    background-color: rgb(222,226,230);
+}

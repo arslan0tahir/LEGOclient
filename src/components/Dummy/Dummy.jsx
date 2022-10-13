@@ -2,18 +2,18 @@ import React,{Component} from "react";
 import {Link } from 'react-router-dom';
 import { connect } from "react-redux";
 
-
+import {config} from '../../config/config';
 import styles from './dummy.module.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
+import axios2 from '../../libraries/axios';
 var AppId=4;
 // var TableIds=[3];
 
 var Columns=[
-    {id:1, tableId:1, colName: "id"},
-    {id:2, tableId:1, colName: "FirstName"},
-    {id:3, tableId:1, colName: "LastName"},
-    {id:4, tableId:1, colName: "Age"}
+    {id:1, tableId:3, tableName: "students",colName: "id"},
+    {id:2, tableId:3, tableName: "students",colName: "FirstName"},
+    {id:3, tableId:3, tableName: "students",colName: "LastName"},
+    {id:4, tableId:3, tableName: "students",colName: "Age"}
 ]
 
 var ListData=[
@@ -100,6 +100,7 @@ class Dummy extends Component{
         appId:4,
         tableIds:[3],
         columns:[],
+
         listData:[],
         selectedRows:[],
         sortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
@@ -114,33 +115,90 @@ class Dummy extends Component{
             listData:ListData,
             columns:Columns
         })
+        this.loadDefaultView();
     }
 
     render() { 
         return ( 
         <div>
-
             <table className={"table table-hover table-sm " +styles.tableContainer} >
                 <thead>
                     <tr>
                         {this.renderColumns()}
                     </tr>
                 </thead>
-                <tbody>
-                    
-                    {this.state.listData.map(this.renderRow) }
-
-                    
+                <tbody>                    
+                    {this.state.listData.map(this.renderRow) }                    
                 </tbody>
             </table>
+            <div>
+                {this.getQuery()}
+            </div>
         </div> 
         
         );
     }
 
+    loadDefaultView=()=>{
+            // try{
+            //     jwtToken=Cookies.get('jwtToken');
+            //     auth=JSON.parse(Cookies.get('auth'));
+            // }
+            // catch(e){
+            //     jwtToken='';
+            //     auth={}
+            // }
+
+            // const headers = { 
+            //     'Authorization': 'Bearer '+jwtToken
+            // };
+
+            axios2
+            .get(config.rootUri+"/_api/j/lists?"+this.getQuery() , {
+                responseType: "json",
+            })
+            .then(function (response) {
+                console.log(response.data);
+            });
+    }
+
+    getQuery=()=>{
+        //single item query
+        let defaultQuery={};
+        let queryUri='';
+
+        //for default view
+        defaultQuery.$from=["students"];
+        
+        defaultQuery.$select=this.state.columns.map((col)=>{
+            return col.tableName+"."+col.colName;
+        });        
+        
+        defaultQuery.$filter={
+            AND:[],
+            OR: []
+        };
+        
+        defaultQuery.$orderBy=this.state.sortBy;//tablename.colname
+        
+        defaultQuery.$limit='30';
+
+        queryUri=this.queryObjectToUri(defaultQuery);
+
+        return queryUri;
 
 
-    
+
+
+    }
+
+    queryObjectToUri=(defaultQueryObj)=>{
+        let q='';
+        for(const key in defaultQueryObj){
+            q=q+` ${key}=${encodeURIComponent(JSON.stringify(defaultQueryObj[key]))} `;
+        }
+        return q;
+    }
 
     renderColumns=()=>{
         let tableColumns=[];
@@ -294,7 +352,7 @@ class Dummy extends Component{
                 return <i class="bi bi-sort-down"></i>
             }
             else{
-                return ""
+                return "";
             }
         }
 

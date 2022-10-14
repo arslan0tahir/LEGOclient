@@ -16,84 +16,12 @@ var Columns=[
     {id:4, tableId:3, tableName: "students",colName: "Age"}
 ]
 
-var ListData=[
-                        {   
-                                id: 12,
-                                FirstName: "Arslan",
-                                LastName: "Tahir",
-                                Age: "29",
-                                Class: "10"
-                        },
-                        {   
-                                id: 13,
-                                FirstName: "Ghulam",
-                                LastName: "Mustafa",
-                                Age: "31",
-                                Class: "10"
-                        },
-                        {   
-                                id: 14,
-                                FirstName: "Ishaq  ",
-                                LastName: "Dar",
-                                Age: "56",
-                                Class: "12"
-                        },
-                        {   
-                                id: 15,
-                                FirstName: "Nawaz",
-                                LastName: "Sharif",
-                                Age: "34",
-                                Class: "8"
-                        },
-                        {   
-                                id: 16,
-                                FirstName: "Ahmad",
-                                LastName: "Riaz",
-                                Age: "31",
-                                Class: "10"
-                        },
-                        {   
-                                id: 17,
-                                FirstName: "Marwa",
-                                LastName: "Hussain",
-                                Age: "11",
-                                Class: "13"
-                        },
-                        {   
-                                id: 18,
-                                FirstName: "Rohan",
-                                LastName: "Tahir",
-                                Age: "21",
-                                Class: "12"
-                        },
-                        {   
-                                id: 19,
-                                FirstName: "Ayesha",
-                                LastName: "Riaz",
-                                Age: "31",
-                                Class: "12"
-                        },
-                        {   
-                                id: 20,
-                                FirstName: "Ghulam",
-                                LastName: "Mustafa",
-                                Age: "32",
-                                Class: "8"
-                        },
-                        {   
-                                id: 21,
-                                FirstName: "Ghulam",
-                                LastName: "Fareed",
-                                Age: "38",
-                                Class: "16"
-                        }
-]
-
 
 class Dummy extends Component{
     constructor(props) {
         super(props);
-        this.listData=ListData;
+        this.state.listData=[];
+        this.state.columns=Columns;
     }
 
     state = { 
@@ -110,12 +38,17 @@ class Dummy extends Component{
      }
 
     componentDidMount(){
-        this.setState({
-            ...this.state,
-            listData:ListData,
-            columns:Columns
-        })
-        this.loadDefaultView();
+        // this.setState({
+        //     ...this.state,
+        //     listData:ListData,
+        //     columns:Columns
+        // })
+        this.loadViewData();
+    }
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.sortBy!=prevState.sortBy){
+            this.loadViewData();
+        }
     }
 
     render() { 
@@ -133,32 +66,30 @@ class Dummy extends Component{
             </table>
             <div>
                 {this.getQuery()}
+
             </div>
         </div> 
         
         );
     }
 
-    loadDefaultView=()=>{
-            // try{
-            //     jwtToken=Cookies.get('jwtToken');
-            //     auth=JSON.parse(Cookies.get('auth'));
-            // }
-            // catch(e){
-            //     jwtToken='';
-            //     auth={}
-            // }
-
-            // const headers = { 
-            //     'Authorization': 'Bearer '+jwtToken
-            // };
+    loadViewData=()=>{
+            
 
             axios2
-            .get(config.rootUri+"/_api/j/lists?"+this.getQuery() , {
+            // .get(config.rootUri+"/_api/j/lists?"+this.getQuery() , {
+            .get("/_api/j/lists?"+this.getQuery() , {
                 responseType: "json",
             })
-            .then(function (response) {
-                console.log(response.data);
+            .then((response)=> {
+                this.setState({
+                        ...this.state,
+                        listData:response.data,                        
+                })
+                // console.log(response.data);
+            })
+            .catch((error)=> {
+                console.log(error);
             });
     }
 
@@ -174,12 +105,9 @@ class Dummy extends Component{
             return col.tableName+"."+col.colName;
         });        
         
-        defaultQuery.$filter={
-            AND:[],
-            OR: []
-        };
+        defaultQuery.$filter='';
         
-        defaultQuery.$orderBy=this.state.sortBy;//tablename.colname
+        defaultQuery.$orderBy=this.state.sortBy;
         
         defaultQuery.$limit='30';
 
@@ -193,11 +121,11 @@ class Dummy extends Component{
     }
 
     queryObjectToUri=(defaultQueryObj)=>{
-        let q='';
+        let q=[];
         for(const key in defaultQueryObj){
-            q=q+` ${key}=${encodeURIComponent(JSON.stringify(defaultQueryObj[key]))} `;
+            q.push(`${key}=${encodeURIComponent(JSON.stringify(defaultQueryObj[key]))} `);
         }
-        return q;
+        return q.join("&");
     }
 
     renderColumns=()=>{
@@ -258,11 +186,13 @@ class Dummy extends Component{
         let sortBy=[...this.state.sortBy];
         let selectedRows=[];
 
+        //find index of existing column
         let sortByIndex=sortBy.findIndex((sortByObj)=>{
             if (sortByObj.id==col.id){
                 return 1
             }
         })
+
         if (sortByIndex>=0){
             //rotate sort order of selected column
             let currSortBy=sortBy[sortByIndex];            
@@ -275,8 +205,10 @@ class Dummy extends Component{
             }
         }
         else{
+            //if no index found add new element
             sortBy.push({
-                id: col.id,
+                id: col.id, 
+                colName: `${col.tableName}.${col.colName}`,
                 order:-1
             })
 
@@ -346,17 +278,15 @@ class Dummy extends Component{
 
         if (currColSortBy){
             if (currColSortBy.order==1){
-                return <i class="bi bi-sort-up"></i>
+                return <i className="bi bi-sort-up"></i>
             }
             else if (currColSortBy.order==-1){
-                return <i class="bi bi-sort-down"></i>
+                return <i className="bi bi-sort-down"></i>
             }
             else{
                 return "";
             }
-        }
-
-        
+        }        
     }
 
 

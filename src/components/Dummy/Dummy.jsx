@@ -29,12 +29,12 @@ class Dummy extends Component{
         tableIds:[3],
         columns:[],
 
-        listData:[],
-        selectedRows:[],
+        listData:[],        
         sortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
+        
+        selectedRows:[],
+        selectionAllowed:1,
 
-
-        selectionAllowed:1, 
      }
 
     componentDidMount(){
@@ -43,17 +43,32 @@ class Dummy extends Component{
         //     listData:ListData,
         //     columns:Columns
         // })
-        this.loadViewData();
+        this.loadListData({...this.state});
     }
     componentDidUpdate(prevProps, prevState) {
-        if (this.state.sortBy!=prevState.sortBy){
-            this.loadViewData();
-        }
+        // if (this.state.sortBy!=prevState.sortBy){
+        //     this.loadListData({sortBy : [...prevState.sortBy]});
+        // }
     }
 
     render() { 
         return ( 
-        <div>
+        <div style={{padding:"20px"}}>
+            <div style={{background:"", display:"inline-block",width:"100%"}} className="">
+                <div style={{float:"left", margin:"10px"}}>
+                    <button type="button" class="btn btn-primary" onClick={e=>{this.createButtonClickHandler(e)}}>Create</button>
+                </div>
+
+                <div style={{float:"left", margin:"10px"}}>
+                    <div class="input-group">
+                        <span class="input-group-text" id="basic-addon1" >
+                            <i class="bi bi-menu-button"></i>
+                        </span>
+                        <input type="text" className="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1"/>
+                    </div>                   
+                </div>
+            </div>
+            
             <table className={"table table-hover table-sm " +styles.tableContainer} >
                 <thead>
                     <tr>
@@ -65,7 +80,7 @@ class Dummy extends Component{
                 </tbody>
             </table>
             <div>
-                {this.getQuery()}
+                {this.stateToQuery()}
 
             </div>
         </div> 
@@ -73,12 +88,13 @@ class Dummy extends Component{
         );
     }
 
-    loadViewData=()=>{
-            
+    loadListData=(newState)=>{
+
+            const oldState={...this.state};
 
             axios2
-            // .get(config.rootUri+"/_api/j/lists?"+this.getQuery() , {
-            .get("/_api/j/lists?"+this.getQuery() , {
+            //build query from fresh state
+            .get("/_api/j/lists?"+this.stateToQuery(newState) , {
                 responseType: "json",
             })
             .then((response)=> {
@@ -89,37 +105,53 @@ class Dummy extends Component{
                 // console.log(response.data);
             })
             .catch((error)=> {
+                // if failed load previous state                
                 console.log(error);
+                this.setState(oldState);
+
             });
+
     }
 
-    getQuery=()=>{
+    stateToQuery=(stateInst)=>{
+
+        if (!stateInst){
+            return '';
+        }
         //single item query
+        const state= stateInst;
+
+
+
         let defaultQuery={};
         let queryUri='';
 
         //for default view
         defaultQuery.$from=["students"];
         
-        defaultQuery.$select=this.state.columns.map((col)=>{
+        defaultQuery.$select=state.columns.map((col)=>{
             return col.tableName+"."+col.colName;
         });        
         
         defaultQuery.$filter='';
         
-        defaultQuery.$orderBy=this.state.sortBy;
+        defaultQuery.$orderBy=state.sortBy;
         
         defaultQuery.$limit='30';
 
         queryUri=this.queryObjectToUri(defaultQuery);
 
         return queryUri;
-
-
-
-
     }
 
+    paramsToState=(url)=>{        
+
+    }
+    
+
+
+
+    
     queryObjectToUri=(defaultQueryObj)=>{
         let q=[];
         for(const key in defaultQueryObj){
@@ -214,12 +246,19 @@ class Dummy extends Component{
 
         }
 
-        this.setState({
-            sortBy:sortBy
-        })
+        //propsed state, new data will be requested based upon this state
+        // let oldState=[...this.state.sortBy]
+        
+        let state={
+            ...this.state,
+            sortBy:sortBy            
+        }
+        this.setState(state);
+        this.loadListData(state);//old state
 
 
     }
+
 
     rowSelectionClickHandler=(e,row)=>{
         e.preventDefault();
@@ -261,6 +300,10 @@ class Dummy extends Component{
         this.setState({
             selectedRows:selectedRows
         }) 
+    }
+
+    createButtonClickHandler=(e)=>{
+        
     }
 
     selectedRowsClass=(row)=>{

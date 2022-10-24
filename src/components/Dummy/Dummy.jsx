@@ -6,6 +6,9 @@ import {config} from '../../config/config';
 import styles from './dummy.module.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import axios2 from '../../libraries/axios';
+import Button from 'react-bootstrap/Button';
+import ItemModal from "../ItemModal/ItemModal";
+
 var AppId=4;
 // var TableIds=[3];
 
@@ -35,6 +38,8 @@ class Dummy extends Component{
         selectedRows:[],
         selectionAllowed:1,
 
+        showModal:0,
+
      }
 
     componentDidMount(){
@@ -56,7 +61,10 @@ class Dummy extends Component{
         <div style={{padding:"20px"}}>
             <div style={{background:"", display:"inline-block",width:"100%"}} className="">
                 <div style={{float:"left", margin:"10px"}}>
-                    <button type="button" class="btn btn-primary" onClick={e=>{this.createButtonClickHandler(e)}}>Create</button>
+                    <Button variant="primary" onClick={e=>{this.createButtonClickHandler(e)}}>
+                        Create
+                    </Button>
+                    {/* <button type="button" class="btn btn-primary" onClick={}>Create</button> */}
                 </div>
 
                 <div style={{float:"left", margin:"10px"}}>
@@ -79,10 +87,15 @@ class Dummy extends Component{
                     {this.state.listData.map(this.renderRow) }                    
                 </tbody>
             </table>
-            <div>
-                {this.stateToQuery()}
+            <ItemModal
+                showModal={this.state.showModal}
+                toggleModal={(mState)=>{this.setState({showModal:mState})}}
+                modalTitle=""
+                columns={this.state.columns}
+                mode=""
+                apiUri=""
+            />
 
-            </div>
         </div> 
         
         );
@@ -303,7 +316,10 @@ class Dummy extends Component{
     }
 
     createButtonClickHandler=(e)=>{
-        
+        this.setState({
+            showModal:1,
+        })
+        console.log("create clicked")
     }
 
     selectedRowsClass=(row)=>{

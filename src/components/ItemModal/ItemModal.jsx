@@ -39,10 +39,6 @@ class ItemModal extends Component {
 
     render() { 
         return (<div>
-
-
-
-
             <Modal show={this.props.showModal} onHide={this.handleClose}>
                 <Modal.Header closeButton>
                 <Modal.Title>Modal heading</Modal.Title>
@@ -56,9 +52,7 @@ class ItemModal extends Component {
                     Save Changes
                 </Button>
                 </Modal.Footer>
-            </Modal>
-
-            
+            </Modal>            
         </div>
         );
     }

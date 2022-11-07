@@ -19,6 +19,12 @@ var Columns=[
     {id:4, tableId:3, tableName: "students",colName: "Age"}
 ]
 
+var View={
+    view_name : "dummy",
+    view_tables: [],
+    view_columns:[],
+}
+
 
 class Dummy extends Component{
     constructor(props) {
@@ -32,6 +38,12 @@ class Dummy extends Component{
         tableIds:[3],
         columns:[],
 
+        view_Name:"STUDENTS",
+        view_TableIds:[3],
+        view_SortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
+        view_Columns:[],
+        view_AllowSelection:1,
+
         listData:[],        
         sortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
         
@@ -39,7 +51,6 @@ class Dummy extends Component{
         selectionAllowed:1,
 
         showModal:0,
-
      }
 
     componentDidMount(){
@@ -48,7 +59,8 @@ class Dummy extends Component{
         //     listData:ListData,
         //     columns:Columns
         // })
-        this.loadListData({...this.state});
+        this.loadView("dummy");
+
     }
     componentDidUpdate(prevProps, prevState) {
         // if (this.state.sortBy!=prevState.sortBy){
@@ -91,7 +103,7 @@ class Dummy extends Component{
                 showModal={this.state.showModal}
                 toggleModal={(mState)=>{this.setState({showModal:mState})}}
                 modalTitle=""
-                columns={this.state.columns}
+                columns={this.state.view_Columns}
                 mode=""
                 apiUri=""
             />
@@ -99,6 +111,42 @@ class Dummy extends Component{
         </div> 
         
         );
+    }
+
+    loadView=(viewName)=>{
+        // http://127.0.0.1:33333/_api/item/LIST_VIEWS/view_name('LIST_VIEWS')
+
+        axios2
+        //build query from fresh state
+        .get(`/_api/j/item/LIST_VIEWS/view_name('${this.state.view_Name}')?$expandAll=LIST\\view_tables`,{
+            responseType: "json",
+        })
+        .then((response)=> {
+            let state={};
+            let res=response.data;
+            
+            state={...state};
+            state.view_Name=res.view_name;
+            state.view_Tables=JSON.parse(res.view_tables);
+            state.view_SortBy=JSON.parse(res.sort_by);//array of object {id:1, order:-1} -1 decending, 1 ascending   
+            state.view_Columns=JSON.parse(res.view_columns);
+            state.view_AllowSelection= res.allow_selection;
+
+
+            this.setState(state,
+                ()=>{ 
+                    this.loadListData({...this.state})
+                })
+
+           
+            // console.log(response.data);
+        })
+        .catch((error)=> {
+            // if failed load previous state                
+            console.log(error);
+            // this.setState(oldState);
+
+        });
     }
 
     loadListData=(newState)=>{
@@ -142,8 +190,8 @@ class Dummy extends Component{
         //for default view
         defaultQuery.$from=["students"];
         
-        defaultQuery.$select=state.columns.map((col)=>{
-            return col.tableName+"."+col.colName;
+        defaultQuery.$select=state.view_Columns.map((col)=>{
+            return col.tableName+"."+col.column_name;
         });        
         
         defaultQuery.$filter='';
@@ -185,7 +233,7 @@ class Dummy extends Component{
         }
 
         tableColumns.push(
-            this.state.columns.map((col)=> {
+            this.state.view_Columns.map((col)=> {
                 return <th key={col.id} scope="col" onClick={(e)=>{this.sortColumnClickHandler(e,col)}}>
                         {col.colName}
                         {this.renderSortIcon(col)}
@@ -208,7 +256,7 @@ class Dummy extends Component{
             )
         }
 
-        for (const col of this.state.columns){
+        for (const col of this.state.view_Columns){
             if (row[col.colName]){
                 tableRowCells.push(
                     <td key={row.id+'-'+col.id} scope="row">

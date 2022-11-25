@@ -39,7 +39,8 @@ class Dummy extends Component{
         columns:[],
 
         view_Name:"STUDENTS",
-        view_TableIds:[3],
+        view_TableIdsExpanded:[],
+        view_TableIds:[],
         view_SortBy:[],//array of object {id:1, order:-1} -1 decending, 1 ascending   
         view_Columns:[],
         view_AllowSelection:1,
@@ -118,7 +119,7 @@ class Dummy extends Component{
 
         axios2
         //build query from fresh state
-        .get(`/_api/j/item/LIST_VIEWS/view_name('${this.state.view_Name}')?$expandAll=LIST\\view_tables`,{
+        .get(`/_api/views/list/${this.state.view_Name}`,{
             responseType: "json",
         })
         .then((response)=> {
@@ -127,11 +128,11 @@ class Dummy extends Component{
             
             state={...state};
             state.view_Name=res.view_name;
-            state.view_Tables=JSON.parse(res.view_tables);
-            state.view_SortBy=JSON.parse(res.sort_by);//array of object {id:1, order:-1} -1 decending, 1 ascending   
-            state.view_Columns=JSON.parse(res.view_columns);
+            state.view_TableIdsExpanded=res.view_tables_expanded;
+            state.view_TableIds=res.view_tables;
+            state.view_SortBy=res.sort_by;//array of object {id:1, order:-1} -1 decending, 1 ascending   
+            state.view_Columns=res.view_columns;
             state.view_AllowSelection= res.allow_selection;
-
 
             this.setState(state,
                 ()=>{ 
@@ -186,14 +187,26 @@ class Dummy extends Component{
 
         let defaultQuery={};
         let queryUri='';
-
+        let viewTableIdsExpanded=this.state.view_TableIdsExpanded;//view_TableIdsExpanded
+        let $fromTables=viewTableIdsExpanded.map((table)=>{
+            return table.list_name
+        })
         //for default view
-        defaultQuery.$from=["students"];
+        defaultQuery.$from=$fromTables;
         
+
+
         defaultQuery.$select=state.view_Columns.map((col)=>{
-            return col.tableName+"."+col.column_name;
+            
+            let currTableName='';
+            for(const table of viewTableIdsExpanded){
+                if (table.id==col.list_id){
+                    return table.list_name+"."+col.column_name;
+                }
+            }
+            return '';
         });        
-        
+        //filter is a string
         defaultQuery.$filter='';
         
         defaultQuery.$orderBy=state.sortBy;
@@ -216,7 +229,7 @@ class Dummy extends Component{
     queryObjectToUri=(defaultQueryObj)=>{
         let q=[];
         for(const key in defaultQueryObj){
-            q.push(`${key}=${encodeURIComponent(JSON.stringify(defaultQueryObj[key]))} `);
+            q.push(`${key}=${encodeURIComponent(JSON.stringify(defaultQueryObj[key]))}`);
         }
         return q.join("&");
     }
